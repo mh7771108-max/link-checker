@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MARO🏴‍☠️ فاحص الروابط | اعرف الرابط ملغم ولا لا</title>
+<meta name="description" content="افحص أي رابط مجانًا واعرف لو فيه مؤشرات تصيّد أو احتيال أو ملف خطر، قبل ما تفتحه.">
+<style>
+:root{--g:#00ff41;--dim:#7dffa0;--card:rgba(0,20,6,.82);--r:#ff4d4d;--y:#ffd23f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:#000;color:var(--g);font-family:"Courier New",ui-monospace,monospace;line-height:1.7}
+#rain{position:fixed;inset:0;z-index:0;opacity:.3}
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:30px 18px 40px}
+h1{text-align:center;font-size:clamp(2rem,9vw,3.4rem);margin:10px 0 4px;text-shadow:0 0 12px var(--g),0 0 34px var(--g)}
+.sub{text-align:center;color:var(--dim);margin:0 0 26px}
+.box{display:flex;gap:10px;flex-wrap:wrap}
+input{flex:1;min-width:200px;padding:14px;background:#000;color:var(--g);border:1px solid var(--g);border-radius:4px;font:inherit;font-size:1rem;direction:ltr;outline:none}
+input:focus{box-shadow:0 0 16px var(--g)}
+button,.lk{padding:13px 22px;background:transparent;color:var(--g);border:1px solid var(--g);border-radius:4px;font:inherit;font-size:1rem;cursor:pointer;text-decoration:none;display:inline-block}
+button:hover,.lk:hover{background:var(--g);color:#000}
+#res{display:none;margin-top:26px;background:var(--card);border:1px solid #00ff4155;border-radius:8px;padding:20px}
+.verdict{font-size:1.5rem;font-weight:bold;margin:0 0 10px}
+.bar{height:12px;background:#0a1a0e;border-radius:8px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;width:0;transition:width .6s}
+.score{color:var(--dim);font-size:.9rem;margin-bottom:14px}
+.host{direction:ltr;text-align:left;background:#000;border:1px dashed #00ff4155;padding:8px 10px;border-radius:4px;word-break:break-all;margin-bottom:14px;font-size:.9rem}
+ul{list-style:none;padding:0;margin:0}
+li{padding:8px 10px;margin-bottom:6px;border-inline-start:3px solid;background:#00000088;border-radius:3px;font-size:.95rem}
+li.bad{border-color:var(--r);color:#ff9b9b}li.warn{border-color:var(--y);color:#ffe27a}li.ok{border-color:var(--g);color:var(--dim)}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.note{margin-top:22px;border:1px dashed #ffcc00;color:#ffe066;background:#1a1500cc;padding:12px 16px;border-radius:6px;font-size:.88rem}
+footer{text-align:center;color:#00ff4199;font-size:.82rem;margin-top:30px}
+</style>
+</head>
+<body>
+<canvas id="rain"></canvas>
+<div class="wrap">
+<h1>MARO🏴‍☠️</h1>
+<p class="sub">🔎 فاحص الروابط — الصق أي رابط واعرف لو مشبوه قبل ما تفتحه</p>
+<div class="box">
+<input id="u" placeholder="https://example.com/..." autocomplete="off" spellcheck="false">
+<button id="go">افحص ▶</button>
+</div>
+
+<div id="res">
+<div class="verdict" id="vd"></div>
+<div class="bar"><i id="bar"></i></div>
+<div class="score" id="sc"></div>
+<div class="host" id="hs"></div>
+<ul id="fl"></ul>
+<div class="acts">
+<a class="lk" id="g1" target="_blank" rel="noopener noreferrer">فحص عميق: Google Safe Browsing</a>
+<a class="lk" href="https://www.virustotal.com/gui/home/url" target="_blank" rel="noopener noreferrer">فحص عميق: VirusTotal</a>
+</div>
+</div>
+
+<div class="note">⚠️ الفحص هنا تحليل لشكل الرابط فقط، مش بنفتح الرابط ولا بنتصل بيه. معناه إن النتيجة "مفيش مؤشرات خطر" مش ضمان إن الرابط آمن. لو الرابط جاي من رسالة مجهولة أو بيطلب بيانات أو فلوس، متفتحوش حتى لو النتيجة كويسة، واستخدم الفحص العميق.</div>
+<footer>MARO🏴‍☠️ — Stay safe online</footer>
+</div>
+
+<script>
+const SHORT=["bit.ly","tinyurl.com","t.co","goo.gl","is.gd","cutt.ly","ow.ly","rb.gy","shorturl.at","tiny.cc","rebrand.ly","t.ly"];
+const BADTLD=["zip","mov","tk","ml","ga","cf","gq","xyz","top","click","work","support","icu","buzz","rest","country","monster","cam","loan"];
+const BRANDS={paypal:"paypal.com",google:"google.com",facebook:"facebook.com",instagram:"instagram.com",whatsapp:"whatsapp.com",microsoft:"microsoft.com",apple:"apple.com",amazon:"amazon.com",netflix:"netflix.com",binance:"binance.com",telegram:"telegram.org",tiktok:"tiktok.com",twitter:"twitter.com",vodafone:"vodafone.com",instapay:"instapay.eg"};
+const KW=["login","signin","verify","update","secure","account","password","confirm","wallet","bonus","gift","free","claim","suspend","unlock","recover"];
+const EXT=["exe","apk","scr","bat","msi","vbs","jar","iso","cmd","ps1","lnk","dmg"];
+
+function reg(h){const p=h.split(".");if(p.length<=2)return h;const sl=p[p.length-2];if(p[p.length-1].length===2&&["co","com","org","net","gov","edu"].includes(sl))return p.slice(-3).join(".");return p.slice(-2).join(".")}
+
+function analyze(raw){
+let s=raw.trim();if(!s)return null;
+if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(s))s="https://"+s;
+let u;try{u=new URL(s)}catch(e){return{err:true}}
+const f=[];let sc=0;const add=(n,t,m)=>{sc+=n;f.push({t,m})};
+const h=u.hostname.toLowerCase(),full=(u.pathname+u.search).toLowerCase();
+if(!["http:","https:"].includes(u.protocol))add(40,"bad","البروتوكول "+u.protocol+" غير معتاد ولا يُستخدم في المواقع العادية.");
+else if(u.protocol==="http:")add(15,"warn","الرابط بدون تشفير (HTTP)، أي بيانات هتدخلها ممكن تتسرّق.");
+else f.push({t:"ok",m:"الرابط بيستخدم HTTPS (تشفير الاتصال)، لكن ده لا يعني إن الموقع نفسه آمن."});
+if(/^\d{1,3}(\.\d{1,3}){3}$/.test(h)||h.includes(":"))add(30,"bad","الرابط بيستخدم عنوان IP بدل اسم موقع، وده شائع في الروابط الخبيثة.");
+if(h.includes("xn--"))add(25,"bad","الدومين فيه ترميز Punycode، ممكن يكون حروف مزيفة بتشبه موقع معروف.");
+if(u.username||u.password||s.split("://")[1].split("/")[0].includes("@"))add(30,"bad","فيه علامة @ في الرابط. اللي قبلها بيتجاهله المتصفح، وبتُستخدم لإخفاء الوجهة الحقيقية.");
+const labels=h.split(".");
+if(labels.length>=5)add(15,"warn","عدد كبير من النطاقات الفرعية ("+(labels.length-2)+")، أسلوب بيُستخدم لتقليد مواقع معروفة.");
+if(SHORT.includes(reg(h)))add(20,"warn","رابط مختصر بيخفي الوجهة الحقيقية. افتحه في أداة توسيع روابط الأول.");
+const tld=labels[labels.length-1];
+if(BADTLD.includes(tld))add(15,"warn","امتداد الدومين ."+tld+" كتير بيُستخدم في مواقع الاحتيال.");
+const r=reg(h);
+let norm=h.replace(/0/g,"o").replace(/1/g,"l").replace(/3/g,"e").replace(/5/g,"s").replace(/rn/g,"m").replace(/vv/g,"w");
+for(const b in BRANDS){
+ const official=BRANDS[b];const isOff=(r===official||h.endsWith("."+official));
+ if(!isOff&&h.includes(b)){add(35,"bad","الدومين فيه اسم «"+b+"» لكنه مش الموقع الرسمي ("+official+"). ده أسلوب تصيّد معروف.");break}
+ if(!isOff&&!h.includes(b)&&norm.includes(b)){add(35,"bad","الدومين بيقلّد اسم «"+b+"» بحروف شبيهة (تزييف إملائي).");break}
+}
+const hy=(h.match(/-/g)||[]).length;if(hy>=3)add(10,"warn","الدومين فيه شُرط كتير ("+hy+").");
+const kws=KW.filter(k=>h.includes(k)||full.includes(k));
+if(kws.length)add(Math.min(20,kws.length*7),"warn","كلمات بتتكرر في التصيّد: "+kws.join("، ")+".");
+if(s.length>100)add(10,"warn","الرابط طويل جدًا ("+s.length+" حرف).");
+if(u.port&&!["80","443"].includes(u.port))add(15,"warn","بورت غير معتاد ("+u.port+").");
+const ext=(u.pathname.split(".").pop()||"").toLowerCase();
+if(u.pathname.includes(".")&&EXT.includes(ext))add(25,"bad","الرابط بينزّل ملف تنفيذي أو خطر (."+ext+"). متشغّلوش إلا من مصدر موثوق 100%.");
+if(["zip","rar","7z"].includes(ext))add(10,"warn","الرابط بينزّل ملف مضغوط، افحصه قبل الفتح.");
+if((s.match(/%[0-9a-f]{2}/gi)||[]).length>5)add(10,"warn","ترميز % كتير في الرابط، ممكن لإخفاء محتواه.");
+if(/[?&](url|redirect|redir|next|goto|return|link|dest)=https?/i.test(u.search))add(15,"warn","الرابط بيحوّلك لرابط تاني (Redirect)، تأكد من الوجهة النهائية.");
+if(!f.some(x=>x.t==="bad"||x.t==="warn"))f.push({t:"ok",m:"مفيش مؤشرات خطر واضحة في شكل الرابط."});
+sc=Math.min(100,sc);
+return{u,sc,f,h}}
+
+function esc(t){const d=document.createElement("div");d.textContent=t;return d.innerHTML}
+function run(){
+const a=analyze(document.getElementById("u").value);if(!a)return;
+const res=document.getElementById("res");res.style.display="block";
+if(a.err){document.getElementById("vd").textContent="❓ رابط غير صالح";document.getElementById("vd").style.color="var(--y)";document.getElementById("bar").style.width="0";document.getElementById("sc").textContent="";document.getElementById("hs").textContent="";document.getElementById("fl").innerHTML="<li class='warn'>اتأكد إنك كاتب الرابط صح.</li>";return}
+let v,c;if(a.sc>=50){v="🚨 خطر — الرابط غالبًا ملغم أو تصيّد";c="var(--r)"}else if(a.sc>=20){v="⚠️ مشبوه — خلّي بالك";c="var(--y)"}else{v="✅ مفيش مؤشرات خطر واضحة";c="var(--g)"}
+const vd=document.getElementById("vd");vd.textContent=v;vd.style.color=c;
+const b=document.getElementById("bar");b.style.background=c;b.style.width=Math.max(a.sc,4)+"%";
+document.getElementById("sc").textContent="درجة الخطورة: "+a.sc+" / 100";
+document.getElementById("hs").textContent=a.h+"  ←  "+a.u.href;
+document.getElementById("fl").innerHTML=a.f.map(x=>"<li class='"+(x.t||"ok")+"'>"+esc(x.m)+"</li>").join("");
+document.getElementById("g1").href="https://transparencyreport.google.com/safe-browsing/search?url="+encodeURIComponent(a.u.href);
+}
+document.getElementById("go").onclick=run;
+document.getElementById("u").addEventListener("keydown",e=>{if(e.key==="Enter")run()});
+
+const c=document.getElementById("rain"),x=c.getContext("2d");let cols,dr;const ch="01{}[]<>/$#@%&*";
+function rs(){c.width=innerWidth;c.height=innerHeight;cols=Math.floor(c.width/16);dr=Array(cols).fill(1).map(()=>Math.random()*-50)}
+rs();addEventListener("resize",rs);
+setInterval(()=>{x.fillStyle="rgba(0,0,0,.08)";x.fillRect(0,0,c.width,c.height);x.fillStyle="#00ff41";x.font="15px monospace";
+for(let i=0;i<cols;i++){x.fillText(ch[Math.floor(Math.random()*ch.length)],i*16,dr[i]*16);if(dr[i]*16>c.height&&Math.random()>.975)dr[i]=0;dr[i]++}},50);
+</script>
+</body>
+</html>
